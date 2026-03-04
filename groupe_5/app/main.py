@@ -1,110 +1,123 @@
-"""Point d'entree FastAPI du groupe 5."""
-
-from __future__ import annotations
-
-from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
-from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from app.config import settings
-from app.database import DatabaseError, init_database
-from app.routers.votre_domaine import router as navigation_router
+app = FastAPI()
 
-
-@asynccontextmanager
-async def lifespan(_: FastAPI):
-    init_database()
-    yield
-
-
-app = FastAPI(
-    title=settings.app_name,
-    version=settings.app_version,
-    description="API REST du groupe 5 pour les operateurs de navigation.",
-    lifespan=lifespan,
-)
-app.include_router(navigation_router)
-
+# ============================================
+# GESTIONNAIRES D'EXCEPTIONS GLOBAUX
+# ============================================
 
 @app.exception_handler(StarletteHTTPException)
-async def http_exception_handler(
-    request: Request, exc: StarletteHTTPException
-) -> JSONResponse:
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    """Gère les erreurs HTTP 404, 400, etc."""
     return JSONResponse(
         status_code=exc.status_code,
         content={
             "error": "http_error",
             "message": exc.detail,
             "status_code": exc.status_code,
-            "path": str(request.url),
-        },
+            "path": str(request.url)
+        }
     )
 
-
 @app.exception_handler(RequestValidationError)
-async def validation_exception_handler(
-    request: Request, exc: RequestValidationError
-) -> JSONResponse:
-    errors = [
-        {
-            "field": " -> ".join(str(loc) for loc in error["loc"]),
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """Gère les erreurs de validation Pydantic (422)."""
+    errors = []
+    for error in exc.errors():
+        errors.append({
+            "field": " ".join(str(loc) for loc in error["loc"]),
             "message": error["msg"],
-            "type": error["type"],
-        }
-        for error in exc.errors()
-    ]
+            "type": error["type"]
+        })
+
     return JSONResponse(
         status_code=422,
         content={
             "error": "validation_error",
-            "message": "Les donnees fournies sont invalides",
+            "message": "Les données fournies sont invalides",
             "details": errors,
-            "path": str(request.url),
-        },
+            "path": str(request.url)
+        }
     )
 
-
 @app.exception_handler(DatabaseError)
-async def database_exception_handler(
-    request: Request, exc: DatabaseError
-) -> JSONResponse:
+async def database_exception_handler(request: Request, exc: DatabaseError):
+    """Gère les erreurs de base de données."""
     return JSONResponse(
         status_code=500,
         content={
             "error": "database_error",
-            "message": "Une erreur est survenue lors de l'acces aux donnees",
+            "message": "Une erreur est survenue lors de l'accès aux données",
             "details": {"error": str(exc)},
-            "path": str(request.url),
-        },
+            "path": str(request.url)
+        }
     )
 
-
 @app.exception_handler(Exception)
-async def general_exception_handler(
-    request: Request, _: Exception
-) -> JSONResponse:
+async def general_exception_handler(request: Request, exc: Exception):
+    """Attrape toutes les exceptions non gérées."""
+    # En production, ne pas exposer les détails de l'erreur
     return JSONResponse(
         status_code=500,
         content={
             "error": "internal_error",
             "message": "Une erreur interne est survenue",
-            "path": str(request.url),
-        },
+            "path": str(request.url)
+        }
     )
 
 
+
+
+
+from fastapi import FastAPI
+from contextlib import asynccontextmanager
+
+from app.database import init_database
+from app.routers import aavs  # Chaque groupe importe ses routers
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Gestion du cycle de vie de l'application."""
+    # Startup: initialisation
+    print("🚀 Initialisation de la base de données...")
+    init_database()
+    yield
+    # Shutdown: nettoyage
+    print("🛑 Arrêt du serveur")
+
+app = FastAPI(
+    title="PlatonAAV API",
+    description="""
+    API REST pour la gestion des Acquis d'Apprentissage Visés (AAV).
+
+    ## Groupes
+
+    * **AAVs** - Gestion des acquis (Groupe 1)
+    * **Learners** - Gestion des apprenants (Groupe 2)
+    * etc.
+    """,
+    version="1.0.0",
+    lifespan=lifespan
+)
+
+# Inclusion des routers
+app.include_router(aavs.router)
+# app.include_router(learners.router)  # Décommenter selon le groupe
+
 @app.get("/")
-def root() -> dict[str, str]:
+def root():
     return {
-        "message": "Bienvenue sur l'API PlatonAAV Groupe 5",
+        "message": "Bienvenue sur l'API PlatonAAV",
         "documentation": "/docs",
-        "version": settings.app_version,
+        "version": "1.0.0"
     }
 
-
 @app.get("/health")
-def health_check() -> dict[str, str]:
+def health_check():
+    """Endpoint pour vérifier que le serveur fonctionne."""
     return {"status": "healthy", "database": "connected"}
