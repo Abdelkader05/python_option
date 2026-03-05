@@ -177,6 +177,47 @@ def init_database():
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_tentative_aav ON tentative(id_aav_cible)")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_tentative_date ON tentative(date_tentative)")
 
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS navigation_cache (
+                id_apprenant INTEGER,
+                id_aav INTEGER,
+                categorie TEXT,
+                dernier_calcul TIMESTAMP,
+                raison_blocage TEXT,
+
+                PRIMARY KEY (id_apprenant, id_aav),
+
+                FOREIGN KEY (id_apprenant)
+                    REFERENCES apprenant(id_apprenant)
+                    ON DELETE CASCADE,
+
+                FOREIGN KEY (id_aav)
+                    REFERENCES aav(id_aav)
+                    ON DELETE CASCADE
+            )
+        """)
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS revision_history (
+                id INTEGER PRIMARY KEY,
+
+                id_apprenant INTEGER,
+                id_aav INTEGER,
+
+                date_revision TIMESTAMP,
+                niveau_maitrise_apres REAL,
+                prochaine_revision_prevue TIMESTAMP,
+
+                FOREIGN KEY (id_apprenant)
+                    REFERENCES apprenant(id_apprenant)
+                    ON DELETE CASCADE,
+
+                FOREIGN KEY (id_aav)
+                    REFERENCES aav(id_aav)
+                    ON DELETE CASCADE
+            )
+        """)
+        
         conn.commit()
         print("✅ Base de données initialisée avec succès")
 
