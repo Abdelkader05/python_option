@@ -43,13 +43,7 @@ votre_groupe_X/
 ### 1.3 Fichier requirements.txt
 
 ```txt
-fastapi>=0.104.0
-uvicorn[standard]>=0.24.0
-pydantic>=2.5.0
-pydantic-settings>=2.1.0
-pytest>=7.4.0
-httpx>=0.25.0
-networkx>=3.2.0  # Pour groupes 5 et 6
+
 ```
 
 ---

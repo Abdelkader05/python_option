@@ -1,19 +1,26 @@
 import sqlite3
+import os
+from app.database import init_database, get_db_connection
 
-# connexion à la base
-conn = sqlite3.connect("platonAAV.db")
 
-# lire le fichier SQL
+
+
+if os.path.exists('platonAAV.db'):
+    os.remove('platonAAV.db')
+
+
+init_database()
+
+
 with open("../RessourcesCommunes-20260304/donnees_test.sql", "r") as f:
     sql_script = f.read()
 
-# exécuter le script
-conn.executescript(sql_script)
 
-# sauvegarder
-conn.commit()
+with get_db_connection() as conn:
+    cursor = conn.cursor()
 
-# fermer
+    conn.executescript(sql_script)
+
+    conn.commit()
+
 conn.close()
-
-print("Dump chargé avec succès")

@@ -12,9 +12,6 @@ router = APIRouter(
 )
 
 
-# ============================================
-# AAV ACCESSIBLES
-# ============================================
 
 @router.get("/{id_apprenant}/accessible", response_model=List[AAV])
 def get_accessible_aavs(id_apprenant: int):
@@ -34,30 +31,27 @@ def get_accessible_aavs(id_apprenant: int):
             data["prerequis_ids"] = from_json(data["prerequis_ids"]) or []
             data["prerequis_externes_codes"] = from_json(data.get("prerequis_externes_codes")) or []
 
-            # vérifier statut apprenant
             cursor.execute(
-                "SELECT niveau_maitrise FROM statut_apprentissage WHERE id_apprenant = ? AND id_aav = ?",
+                "SELECT niveau_maitrise FROM statut_apprentissage WHERE id_apprenant = ? AND id_aav_cible = ?",
                 (id_apprenant, data["id_aav"])
             )
-
             statut = cursor.fetchone()
 
-            # non commencé
-            if statut and statut["niveau_maitrise"] > 0:
+            if statut and data["niveau_maitrise"] > 0:
                 continue
 
-            prerequis_ok = True
 
+            prerequis_ok = True
             for prereq in data["prerequis_ids"]:
 
                 cursor.execute(
-                    "SELECT niveau_maitrise FROM statut_apprentissage WHERE id_apprenant = ? AND id_aav = ?",
+                    "SELECT est_maitrise FROM statut_apprentissage WHERE id_apprenant = ? AND id_aav_cible = ?",
                     (id_apprenant, prereq)
                 )
 
                 prereq_statut = cursor.fetchone()
 
-                if not prereq_statut or prereq_statut["niveau_maitrise"] < 0.7:
+                if not prereq_statut or not prereq_statut["est_maitrise"] :
                     prerequis_ok = False
                     break
 
@@ -67,11 +61,8 @@ def get_accessible_aavs(id_apprenant: int):
     return accessibles
 
 
-# ============================================
-# AAV EN COURS
-# ============================================
 
-@router.get("/{id_apprenant}/in-progress", response_model=List[AAV])
+@router.get("/{id_apprenant}/in-progress", response_model=List[AAV, ])
 def get_in_progress_aavs(id_apprenant: int):
 
     result = []
@@ -80,13 +71,12 @@ def get_in_progress_aavs(id_apprenant: int):
         cursor = conn.cursor()
 
         cursor.execute("""
-            SELECT a.*, s.niveau_maitrise
+            SELECT a.* , s.historique_tentatives_ids
             FROM aav a
             JOIN statut_apprentissage s
-            ON a.id_aav = s.id_aav
+            ON a.id_aav = s.id_aav_cible
             WHERE s.id_apprenant = ?
-            AND s.niveau_maitrise > 0
-            AND s.niveau_maitrise < 0.9
+            AND NOT s.est_maitrise
             AND a.is_active = 1
         """, (id_apprenant,))
 
@@ -103,9 +93,6 @@ def get_in_progress_aavs(id_apprenant: int):
     return result
 
 
-# ============================================
-# AAV BLOQUÉS
-# ============================================
 
 @router.get("/{id_apprenant}/blocked")
 def get_blocked_aavs(id_apprenant: int):
