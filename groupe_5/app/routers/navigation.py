@@ -37,7 +37,7 @@ def get_accessible_aavs(id_apprenant: int):
             )
             statut = cursor.fetchone()
 
-            if statut and data["niveau_maitrise"] > 0:
+            if statut and statut["niveau_maitrise"] > 0:
                 continue
 
 
