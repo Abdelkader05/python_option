@@ -6,7 +6,7 @@ from app.database import get_db_connection, from_json, to_json
 from app.models import AAV
 
 router = APIRouter(
-    prefix="/apprenants",
+    prefix="/navigation",
     tags=["Navigation"]
 )
 
@@ -55,7 +55,7 @@ def save_cache(cursor, id_apprenant, aav_id, categorie, raison=None):
 # ============================================================
 # ACCESSIBLE
 # ============================================================
-@router.get("/{id_apprenant}/aavs/accessible", response_model=List[AAV])
+@router.get("/{id_apprenant}/accessible", response_model=List[AAV])
 def get_accessible_aavs(id_apprenant: int):
 
     with get_db_connection() as conn:
@@ -143,7 +143,7 @@ def get_accessible_aavs(id_apprenant: int):
 # IN PROGRESS
 # ============================================================
 
-@router.get("/{id_apprenant}/aavs/in-progress")
+@router.get("/{id_apprenant}/in-progress")
 def get_in_progress_aavs(id_apprenant: int):
 
     with get_db_connection() as conn:
@@ -186,7 +186,7 @@ def get_in_progress_aavs(id_apprenant: int):
 # BLOCKED
 # ============================================================
 
-@router.get("/{id_apprenant}/aavs/blocked")
+@router.get("/{id_apprenant}/blocked")
 def get_blocked_aavs(id_apprenant: int):
 
     with get_db_connection() as conn:
@@ -235,7 +235,7 @@ def get_blocked_aavs(id_apprenant: int):
 # REVIEWABLE
 # ============================================================
 
-@router.get("/{id_apprenant}/aavs/reviewable", response_model=List[AAV])
+@router.get("/{id_apprenant}/reviewable", response_model=List[AAV])
 def get_reviewable_aavs(id_apprenant: int):
 
     with get_db_connection() as conn:
@@ -301,7 +301,7 @@ def get_reviewable_aavs(id_apprenant: int):
 # DASHBOARD
 # ============================================================
 
-@router.get("/{id_apprenant}/aavs/dashboard")
+@router.get("/{id_apprenant}/dashboard")
 def navigation_dashboard(id_apprenant: int):
 
     accessible = get_accessible_aavs(id_apprenant)

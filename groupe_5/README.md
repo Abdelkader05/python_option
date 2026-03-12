@@ -27,18 +27,25 @@ Implementation FastAPI de la partie commune du projet PlatonAAV et des operateur
 ```bash
 pip install -r requirements.txt
 uvicorn app.main:app --reload
+
+
+# Lancement en mode développement (reload automatique)
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+# Lancement en production
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
+
 ```
 
 ## Tests
 
 ```bash
+# Tous les tests
 pytest
+
+# Tests avec couverture
+pytest --cov=app --cov-report=html
+
+# Tests spécifiques
+pytest tests/test_aavs.py -v
 ```
-
-## Configuration
-
-Variables d'environnement disponibles :
-
-- `GROUPE5_DATABASE_PATH`
-- `GROUPE5_DEBUG`
-- `GROUPE5_APP_NAME`
