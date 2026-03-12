@@ -1,0 +1,16 @@
+projet: "Python Avancé 2025 - Opérateurs de Navigation AAV"
+groupe: 5
+github: "https://github.com/Abdelkader05/navigation_AAV"
+binome1:
+    nom: "EL HASSANI"
+    prenom: "Sofian"
+    email: "sofian.el-hassani@edu.univ-eiffel.fr"
+binome2:
+    nom: "SAMASSEKOU"
+    prenom: "Abdel Kader"
+    email: "samassekou@edu.univ-eiffel.fr"
+description: "Ce projet implémente les opérateurs de navigation du système PlatonAAV,
+    une API REST FastAPI permettant de gérer la progression des apprenants à travers
+    les Aptitudes et Acquis Visés (AAV). L'API expose des endpoints pour identifier
+    les AAV accessibles, en cours, bloqués et à réviser, en s'appuyant sur un système
+    de prérequis et de révision espacée avec mise en cache des résultats."
